@@ -7,10 +7,13 @@ var FPS = 24;
 
 
 var context;
+var organisms = [];
+var oneAtom;
 
 $(document).ready( function(){
     sizeCanvas();
     createContext();
+    generateSystem(10);
 });
 
 setInterval(function()
@@ -34,18 +37,14 @@ function sizeCanvas()
 
 function generateSystem(amount)
 {
-    var organisms = [];
-
-    for(var i=0; i < amount; i++)
-    {
-        organisms[i] = randomAtom(4, WORLD_HEIGHT, WORLD_WIDTH);
-    }
-
-    return organisms;
+    for(var i=0; i< amount; i++)
+        organisms[i] = randomAtom(5, WORLD_WIDTH, WORLD_HEIGHT);
 }
 
 function updateSystem()
 {
+    for(var i=0; i <organisms.length; i++)
+        organisms[i].update();
 }
 
 function drawSystem()
@@ -53,4 +52,7 @@ function drawSystem()
     context.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     context.fillStyle= CLEAR_COLOR;
     context.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+    for(var i=0; i <organisms.length; i++)
+        organisms[i].draw();
 }
