@@ -5,22 +5,27 @@ var CLEAR_COLOR = "#5292BF";
 
 var FPS = 24;
 
+var paused = true;
 
 var context;
 var organisms = [];
-var oneAtom;
 
 $(document).ready( function(){
     sizeCanvas();
     createContext();
     generateSystem(10);
+
+    paused = false;
 });
 
 setInterval(function()
 {
-    updateSystem();
-    drawSystem();
-}), 1000/FPS;
+    if(!paused)
+    {
+        updateSystem();
+        drawSystem();
+    }
+}, 1000/FPS);
 
 
 function createContext()
