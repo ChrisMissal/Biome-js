@@ -1,11 +1,28 @@
 function randomAtom(radius, maxHeight, maxWidth)
 {
-    var velocityX = Math.floor(Math.random() * 4)
-    var velocityY = Math.floor(Math.random() * 4)
-    var positionX = Math.floor(Math.random() * maxWidth);
-    var positionY = Math.floor(Math.random() * maxHeight);
+	var totalSpeed = 12.0 * Math.random();
+	var xPercent = Math.random() - .00001; // - .00001 prevents divide by 0 errors
+	var yPercent = 1 - xPercent;
+	
+	var velX = xPercent * totalSpeed;
+	var velY = yPercent * totalSpeed;
+	var multBy = totalSpeed / (Math.sqrt((velX*velX)+(velY*velY)));
+	velX = multBy * velX;
+	velY = multBy * velY;
+	
+	if (Math.floor(Math.random()*2) == 0){
+		velY *= -1;
+	}
+	if (Math.floor(Math.random()*2) == 0){
+		velX *= -1;
+	}
 
-    return new atom([positionX, positionY], [velocityX,velocityY], radius);
+    //var positionX = Math.floor(Math.random() * maxWidth);
+    //var positionY = Math.floor(Math.random() * maxHeight);
+	var positionX = Math.floor(.5 * maxWidth);
+	var positionY = Math.floor(.5 * maxHeight);
+
+    return new atom([positionX, positionY], [velX,velY], radius);
 }
 
 function atom(position, velocity, radius)
@@ -36,9 +53,9 @@ function bounceOffOfEdges(radius, position, velocity)
     var left = 0 + radius;
     var right = WORLD_WIDTH - radius;
 
-    if(position[1] <= top || position[1] >= bottom)
+    if(position[1] < top || position[1] > bottom)
         velocity[1] *= -1;
-    if(position[0] <= left || position[0] >= right)
+    if(position[0] < left || position[0] > right)
         velocity[0] *= -1;
 
     return velocity;

@@ -13,7 +13,7 @@ var organisms = [];
 $(document).ready( function(){
     sizeCanvas();
     createContext();
-    generateSystem(10);
+    generateSystem(500);
 
     paused = false;
 });
@@ -43,7 +43,7 @@ function sizeCanvas()
 function generateSystem(amount)
 {
     for(var i=0; i< amount; i++)
-        organisms[i] = randomAtom(5, WORLD_WIDTH, WORLD_HEIGHT);
+        organisms[i] = randomAtom((Math.floor(Math.sqrt(Math.random()*50))+1), WORLD_WIDTH, WORLD_HEIGHT);
 }
 
 function updateSystem()
