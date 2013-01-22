@@ -30,9 +30,10 @@ function atom(position, velocity, radius)
     this.position = position;
     this.radius = radius;
     this.velocity = velocity;
+    this.color = 'green';
     this.draw = function() {
         context.beginPath();
-        context.fillStyle = 'green';
+        context.fillStyle = this.color;
         context.arc(
             this.position[0], this.position[1], this.radius, 2*Math.PI, false
         );
@@ -43,7 +44,22 @@ function atom(position, velocity, radius)
         this.position[1] += this.velocity[1];
 
         this.velocity = bounceOffOfEdges(this.radius, this.position, this.velocity);
+        this.color = isHittingOtherAtoms(this) ? 'red' : 'green';
     }
+}
+
+function isHittingOtherAtoms(atom1)
+{
+    var thisIndex = organisms.indexOf(atom1);
+
+    for(var i=0; i < organisms.length; i++) {
+        if(i != thisIndex) {
+            if(twoAtomCollisionCheck(atom1, organisms[i]))
+                return true;
+        }
+    }
+
+    return false;
 }
 
 function bounceOffOfEdges(radius, position, velocity)
@@ -59,4 +75,17 @@ function bounceOffOfEdges(radius, position, velocity)
         velocity[0] *= -1;
 
     return velocity;
+}
+
+function twoAtomCollisionCheck(atom1, atom2)
+{
+    var diffX = (atom2.position[0] - atom1.position[0]);
+    var diffY = (atom2.position[1] - atom1.position[1]);
+    var radii = (atom1.radius + atom2.radius);
+    var distanceSQ = (diffX * diffX) + (diffY * diffY);
+
+    if(distanceSQ < (radii * radii))
+        return true;
+    else
+        return false;
 }

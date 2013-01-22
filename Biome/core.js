@@ -13,7 +13,7 @@ var organisms = [];
 $(document).ready( function(){
     sizeCanvas();
     createContext();
-    generateSystem(500);
+    generateSystem(200);
 
     paused = false;
 });
