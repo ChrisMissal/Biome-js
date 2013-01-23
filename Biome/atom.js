@@ -1,4 +1,12 @@
-function randomAtom(radius, maxHeight, maxWidth)
+var ATOM_TYPE = {
+    A : { radius: 6, color:'red' },
+    B : { radius: 5, color:'blue' },
+    C : { radius: 4, color:'green' },
+    D : { radius: 3, color:'white' }
+};
+
+
+function randomAtom(maxHeight, maxWidth)
 {
 	var totalSpeed = 12.0 * Math.random();
 	var xPercent = Math.random() - .00001; // - .00001 prevents divide by 0 errors
@@ -22,15 +30,27 @@ function randomAtom(radius, maxHeight, maxWidth)
 	var positionX = Math.floor(.5 * maxWidth);
 	var positionY = Math.floor(.5 * maxHeight);
 
-    return new atom([positionX, positionY], [velX,velY], radius);
+    var type;
+    var typeRoll = Math.floor(Math.random()*9);
+    if( typeRoll >= 0 && typeRoll < 3)
+        type ='D';
+    else if( typeRoll >= 3 && typeRoll < 6)
+        type='C';
+    else if( typeRoll == 6 || typeRoll == 7)
+        type = 'B';
+    else
+        type = 'A';
+
+    return new atom([positionX, positionY], [velX,velY], type);
 }
 
-function atom(position, velocity, radius)
+function atom(position, velocity, type)
 {
+    this.type = type;
     this.position = position;
-    this.radius = radius;
+    this.radius = ATOM_TYPE[type].radius;
     this.velocity = velocity;
-    this.color = 'green';
+    this.color = ATOM_TYPE[type].color;
     this.draw = function() {
         context.beginPath();
         context.fillStyle = this.color;
@@ -44,7 +64,7 @@ function atom(position, velocity, radius)
         this.position[1] += this.velocity[1];
 
         this.velocity = bounceOffOfEdges(this.radius, this.position, this.velocity);
-        this.color = isHittingOtherAtoms(this) ? 'red' : 'green';
+        //this.color = isHittingOtherAtoms(this) ? 'red' : 'green';
     }
 }
 
