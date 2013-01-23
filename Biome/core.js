@@ -1,5 +1,5 @@
 var WORLD_WIDTH = 800;
-var WORLD_HEIGHT = 600;
+var WORLD_HEIGHT = 800;
 
 var CLEAR_COLOR = "#5292BF";
 

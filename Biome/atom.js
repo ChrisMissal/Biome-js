@@ -25,8 +25,6 @@ function randomAtom(maxHeight, maxWidth)
 		velX *= -1;
 	}
 
-    //var positionX = Math.floor(Math.random() * maxWidth);
-    //var positionY = Math.floor(Math.random() * maxHeight);
 	var positionX = Math.floor(.5 * maxWidth);
 	var positionY = Math.floor(.5 * maxHeight);
 
