@@ -42,8 +42,9 @@ function sizeCanvas()
 
 function generateSystem(amount)
 {
-    for(var i=0; i< amount; i++)
+    for(var i=0; i< amount; i++){
         organisms[i] = randomAtom(WORLD_WIDTH, WORLD_HEIGHT);
+	}
 }
 
 function updateSystem()
