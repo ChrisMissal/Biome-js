@@ -104,73 +104,39 @@ function twoAtomCollisionCheck(atom1, atom2)
 			if (!(($.inArray(atom2.guid, atom1.hitsAccountedFor)) > 0) && !(($.inArray(atom1.guid, atom2.hitsAccountedFor)) > 0)){
 				
 				twoDCollision(atom1, atom2);
-				//atom2.velocity[0] *= -1;
-				//atom1.velocity[0] *= -1;
-				//atom2.velocity[1] *=-1;
-				//atom1.velocity[1] *= -1;
+				
 				//atom1.hitLastTime.push(atom2.guid);
 				atom2.hitLastTime.push(atom1.guid);
-				//atom1.hitsAccountedFor.push(atom2.guid); //IT APPEARS THAT CUTTING THIS VERY MUCH HELPS THE CURRENT PROPLEMS
-				//atom2.hitsAccountedFor.push(atom1.guid);
-				//for (var i=atom2.hitsAccountedFor.length; i>=0; i--) {
-				//	if (atom2.hitsAccountedFor[i] == atom1.guid) {
-				//		atom2.hitsAccountedFor.splice(i);
-				//	}
-				//}
-				//for (var i=atom1.hitsAccountedFor.length; i>=0; i--) {
-				//	if (atom1.hitsAccountedFor[i] == atom2.guid) {
-				//		atom1.hitsAccountedFor.splice(i);
-				//	}
-				//}
-			}
-			else{
-				for (var i=atom2.hitLastTime.length; i>=0; i--) {
-					if (atom2.hitLastTime[i] == atom1.guid) {
-						atom2.hitLastTime.splice(i);
-					}
-				}
-				for (var i=atom1.hitLastTime.length; i>=0; i--) {
-					if (atom1.hitLastTime[i] == atom2.guid) {
-						atom1.hitLastTime.splice(i);
-					}
-				}
+				atom1.hitsAccountedFor.push(atom2.guid);
+				atom2.hitsAccountedFor.push(atom1.guid);
 			}
 		}
 		else{
-			for (var i=atom2.hitLastTime.length; i>=0; i--) {
-				if (atom2.hitLastTime[i] == atom1.guid) {
-					atom2.hitLastTime.splice(i);
-				}
-			}
 			for (var i=atom1.hitLastTime.length; i>=0; i--) {
 				if (atom1.hitLastTime[i] == atom2.guid) {
 					atom1.hitLastTime.splice(i);
 				}
 			}
 		}
-
-			//	return true;
 	}
-    //else{
-    //    return false;
-	//}
 }
 
 function twoDCollision(atomOne, atomTwo){
 	var angle = Math.atan2(Math.abs(atomOne.position[1] - atomTwo.position[1]), Math.abs(atomOne.position[0] - atomTwo.position[0]));
-	angle = angle * 57.2958;
-	
+	angle = angle * 57.2958; //even with the multiplier, angle literally never exceeds 90 if the Math.abs() is on above, and never exceeds -+180 if it is not on.  Things to explore here.
+	//alert (angle);
 	var angularDiffOne = atomOne.angleDeg - angle;
 	var atomOneTotalSpeed = Math.sqrt(atomOne.velocity[0] * atomOne.velocity[0] + atomOne.velocity[1] * atomOne.velocity[1]);
 	var angularDiffTwo = atomTwo.angleDeg - angle;
 	var atomTwoTotalSpeed = Math.sqrt(atomTwo.velocity[0] * atomTwo.velocity[0] + atomTwo.velocity[1] * atomTwo.velocity[1]);
 	
+	//for some reason these (below) decrease rapidly over time
 	var velOneX = atomOneTotalSpeed * Math.cos(angularDiffOne);
 	var velOneY = atomOneTotalSpeed * Math.sin(angularDiffOne);
 	var velTwoX = atomTwoTotalSpeed * Math.cos(angularDiffTwo);
-	var velTwoY = atomTwoTotalSpeed * Math.cos(angularDiffTwo);
+	var velTwoY = atomTwoTotalSpeed * Math.sin(angularDiffTwo);
 	
-	var velOneXNew = (velOneX*((atomOne.area - atomTwo.area)) + 2*(atomTwo.area * velTwoX)) / (atomOne.area + atomTwo.area); //Note that I added the Math.abs() wrapper here.  Pretty sure it's right though
+	var velOneXNew = (velOneX*((atomOne.area - atomTwo.area)) + 2*(atomTwo.area * velTwoX)) / (atomOne.area + atomTwo.area);
 	var velTwoXNew = (velTwoX*((atomOne.area - atomTwo.area)) + 2*(atomTwo.area * velOneX)) / (atomOne.area + atomTwo.area);
 	
 	var velOneTotal = (Math.sqrt((velOneXNew * velOneXNew) + (velOneY * velOneY)));
@@ -179,12 +145,18 @@ function twoDCollision(atomOne, atomTwo){
 	directionOne = Math.atan2(velOneY, velOneXNew) + angle;
 	directionTwo = Math.atan2(velTwoY, velTwoXNew) + angle;
 	
-	atomOne.velocity[0] = Math.cos(velOneTotal);
-	atomOne.velocity[1] = Math.sin(velOneTotal);
+	//atomOne.velocity[0] = Math.cos(velOneTotal);
+	//atomOne.velocity[1] = Math.sin(velOneTotal);
+	//atomTwo.velocity[0] = Math.cos(velTwoTotal);
+	//atomTwo.velocity[1] = Math.sin(velTwoTotal);
 	
-	atomTwo.velocity[0] = Math.cos(velTwoTotal);
-	atomTwo.velocity[1] = Math.sin(velTwoTotal);
+	atomTwo.velocity[0] *= -1;
+	atomOne.velocity[0] *= -1;
+	atomTwo.velocity[1] *=-1;
+	atomOne.velocity[1] *= -1;
+	
 }
+
 
 function hackyGuid() { //apparently JS can't generate real guids for some reason.  This is a random number generator
 	return (Math.floor((1 + Math.random()) * 10000000).toString());

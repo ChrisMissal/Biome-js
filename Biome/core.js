@@ -49,6 +49,8 @@ function generateSystem(amount)
 
 function updateSystem()
 {
+	for (var i=0; i < organisms.length; i++)
+		organisms[i].hitsAccountedFor = new Array();
     for(var i=0; i <organisms.length; i++)
         organisms[i].update();
 }
