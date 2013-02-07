@@ -1,14 +1,14 @@
 var ATOM_TYPE = {
-    A : { radius: 6, color:'red' },
-    B : { radius: 5, color:'blue' },
-    C : { radius: 4, color:'green' },
-    D : { radius: 3, color:'white' }
+    A : { radius: 6.0, color:'red' },
+    B : { radius: 5.0, color:'blue' },
+    C : { radius: 4.0, color:'green' },
+    D : { radius: 3.0, color:'white' }
 };
 
 
 function randomAtom(maxHeight, maxWidth)
 {
-	var totalSpeed = 12.0 * Math.random();
+	var totalSpeed = 5 * Math.random();
 	var angle = Math.random()*360;
 	var velX = Math.cos(angle) * totalSpeed;
 	var velY = Math.sin(angle) * totalSpeed;
@@ -16,8 +16,8 @@ function randomAtom(maxHeight, maxWidth)
 	var positionX = Math.floor(.5 * maxWidth);
 	var positionY = Math.floor(.5 * maxHeight);
 	
-	var positionX = Math.random() * maxWidth;
-	var positionY = Math.random() * maxHeight;
+	//var positionX = Math.random() * maxWidth;
+	//var positionY = Math.random() * maxHeight;
 
     var type;
     var typeRoll = Math.floor(Math.random()*9);
@@ -42,7 +42,7 @@ function atom(position, velocity, type, angle)
 	this.angleDeg = angle;
     this.position = position;
     this.radius = ATOM_TYPE[type].radius;
-	this.area = ATOM_TYPE[type].radius * ATOM_TYPE[type].radius * Math.PI;
+	this.mass = (4.0/3.0) * Math.PI * ATOM_TYPE[type].radius * ATOM_TYPE[type].radius * ATOM_TYPE[type].radius;
     this.velocity = velocity;
     this.color = ATOM_TYPE[type].color;
     this.draw = function() {
@@ -102,10 +102,12 @@ function twoAtomCollisionCheck(atom1, atom2)
 		if (!(($.inArray(atom2.guid, atom1.hitLastTime)) > 0) && !(($.inArray(atom1.guid, atom2.hitLastTime)) > 0)){
 		
 			if (!(($.inArray(atom2.guid, atom1.hitsAccountedFor)) > 0) && !(($.inArray(atom1.guid, atom2.hitsAccountedFor)) > 0)){
-				
 				twoDCollision(atom1, atom2);
-				
-				//atom1.hitLastTime.push(atom2.guid);
+				atom1.position[0] = atom1.position[0] + atom1.velocity[0]
+				atom1.position[1] = atom1.position[1] + atom1.velocity[1]
+				atom2.position[0] = atom2.position[0] + atom2.velocity[0]
+				atom2.position[1] = atom2.position[1] + atom2.velocity[1]
+
 				atom2.hitLastTime.push(atom1.guid);
 				atom1.hitsAccountedFor.push(atom2.guid);
 				atom2.hitsAccountedFor.push(atom1.guid);
@@ -122,39 +124,27 @@ function twoAtomCollisionCheck(atom1, atom2)
 }
 
 function twoDCollision(atomOne, atomTwo){
-	var angle = Math.atan2(Math.abs(atomOne.position[1] - atomTwo.position[1]), Math.abs(atomOne.position[0] - atomTwo.position[0]));
-	angle = angle * 57.2958; //even with the multiplier, angle literally never exceeds 90 if the Math.abs() is on above, and never exceeds -+180 if it is not on.  Things to explore here.
-	//alert (angle);
+	var atomOneTotalSpeedPre = Math.sqrt(atomOne.velocity[0] * atomOne.velocity[0] + atomOne.velocity[1] * atomOne.velocity[1]);
+	var atomTwoTotalSpeedPre = Math.sqrt(atomTwo.velocity[0] * atomTwo.velocity[0] + atomTwo.velocity[1] * atomTwo.velocity[1]);
+
+	var angle = Math.atan2((atomOne.position[1] - atomTwo.position[1]), (atomOne.position[0] - atomTwo.position[0]));
+	angle = angle * 57.2958; 
+	
 	var angularDiffOne = atomOne.angleDeg - angle;
-	var atomOneTotalSpeed = Math.sqrt(atomOne.velocity[0] * atomOne.velocity[0] + atomOne.velocity[1] * atomOne.velocity[1]);
 	var angularDiffTwo = atomTwo.angleDeg - angle;
-	var atomTwoTotalSpeed = Math.sqrt(atomTwo.velocity[0] * atomTwo.velocity[0] + atomTwo.velocity[1] * atomTwo.velocity[1]);
 	
-	//for some reason these (below) decrease rapidly over time
-	var velOneX = atomOneTotalSpeed * Math.cos(angularDiffOne);
-	var velOneY = atomOneTotalSpeed * Math.sin(angularDiffOne);
-	var velTwoX = atomTwoTotalSpeed * Math.cos(angularDiffTwo);
-	var velTwoY = atomTwoTotalSpeed * Math.sin(angularDiffTwo);
+	var atomOneTotalSpeedPost = (atomOneTotalSpeedPre*(atomOne.mass - atomTwo.mass))/(atomOne.mass+atomTwo.mass)+2*atomTwo.mass*atomTwoTotalSpeedPre/(atomOne.mass + atomTwo.mass);
+	var atomTwoTotalSpeedPost = (atomTwoTotalSpeedPre*(atomTwo.mass - atomOne.mass))/(atomOne.mass+atomTwo.mass)+2*atomOne.mass*atomOneTotalSpeedPre/(atomOne.mass + atomTwo.mass);
+
+	var velOneX = atomOneTotalSpeedPost * Math.cos(angularDiffOne);
+	var velOneY = atomOneTotalSpeedPost * Math.sin(angularDiffOne);
+	var velTwoX = atomTwoTotalSpeedPost * Math.cos(angularDiffTwo);
+	var velTwoY = atomTwoTotalSpeedPost * Math.sin(angularDiffTwo);
 	
-	var velOneXNew = (velOneX*((atomOne.area - atomTwo.area)) + 2*(atomTwo.area * velTwoX)) / (atomOne.area + atomTwo.area);
-	var velTwoXNew = (velTwoX*((atomOne.area - atomTwo.area)) + 2*(atomTwo.area * velOneX)) / (atomOne.area + atomTwo.area);
-	
-	var velOneTotal = (Math.sqrt((velOneXNew * velOneXNew) + (velOneY * velOneY)));
-	var velTwoTotal = (Math.sqrt((velTwoXNew * velTwoXNew) + (velTwoY * velTwoY)));
-	
-	directionOne = Math.atan2(velOneY, velOneXNew) + angle;
-	directionTwo = Math.atan2(velTwoY, velTwoXNew) + angle;
-	
-	//atomOne.velocity[0] = Math.cos(velOneTotal);
-	//atomOne.velocity[1] = Math.sin(velOneTotal);
-	//atomTwo.velocity[0] = Math.cos(velTwoTotal);
-	//atomTwo.velocity[1] = Math.sin(velTwoTotal);
-	
-	atomTwo.velocity[0] *= -1;
-	atomOne.velocity[0] *= -1;
-	atomTwo.velocity[1] *=-1;
-	atomOne.velocity[1] *= -1;
-	
+	atomTwo.velocity[0] = velTwoX;
+	atomOne.velocity[0] = velOneX;
+	atomTwo.velocity[1] = velTwoY;
+	atomOne.velocity[1] = velOneY;
 }
 
 
