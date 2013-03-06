@@ -1,5 +1,5 @@
-var WORLD_WIDTH = 2500;
-var WORLD_HEIGHT = 2500;
+var WORLD_WIDTH = 700;
+var WORLD_HEIGHT = 700;
 
 var CLEAR_COLOR = "#5292BF";
 
@@ -13,7 +13,7 @@ var organisms = [];
 $(document).ready( function(){
     sizeCanvas();
     createContext();
-    generateSystem(800);
+    generateSystem(200);
 
     paused = false;
 });
@@ -49,10 +49,13 @@ function generateSystem(amount)
 
 function updateSystem()
 {
-	for (var i=0; i < organisms.length; i++)
+	for (var i=0; i < organisms.length; i++){
 		organisms[i].hitsAccountedFor = new Array();
-    for(var i=0; i <organisms.length; i++)
+		organisms[i].updatedThisFrame = 0;
+	}
+    for(var i=0; i <organisms.length; i++){
         organisms[i].update();
+	}
 }
 
 function drawSystem()

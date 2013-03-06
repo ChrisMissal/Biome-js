@@ -8,16 +8,19 @@ var ATOM_TYPE = {
 
 function randomAtom(maxHeight, maxWidth)
 {
-	var totalSpeed = 5 * Math.random();
+	var totalSpeed = 5.0 * Math.random();
 	var angle = Math.random()*360;
 	var velX = Math.cos(angle) * totalSpeed;
 	var velY = Math.sin(angle) * totalSpeed;
+	var isInMolecule = 0;
+	var isInPlant = 0;
+	var isInAnimal = 0;
 	
-	var positionX = Math.floor(.5 * maxWidth);
-	var positionY = Math.floor(.5 * maxHeight);
+	//var positionX = Math.floor(.5 * maxWidth);
+	//var positionY = Math.floor(.5 * maxHeight);
 	
-	//var positionX = Math.random() * maxWidth;
-	//var positionY = Math.random() * maxHeight;
+	var positionX = Math.random() * maxWidth;
+	var positionY = Math.random() * maxHeight;
 
     var type;
     var typeRoll = Math.floor(Math.random()*9);
@@ -43,8 +46,10 @@ function atom(position, velocity, type, angle)
     this.position = position;
     this.radius = ATOM_TYPE[type].radius;
 	this.mass = (4.0/3.0) * Math.PI * ATOM_TYPE[type].radius * ATOM_TYPE[type].radius * ATOM_TYPE[type].radius;
+	this.structureMass = this.mass;
     this.velocity = velocity;
     this.color = ATOM_TYPE[type].color;
+	this.bondedTo = new Array();
     this.draw = function() {
         context.beginPath();
         context.fillStyle = this.color;
@@ -54,14 +59,30 @@ function atom(position, velocity, type, angle)
         context.fill();
     };
     this.update = function() {
+		bounceOffOfEdges(this);
         this.position[0] += this.velocity[0];
         this.position[1] += this.velocity[1];
 
-        this.velocity = bounceOffOfEdges(this.radius, this.position, this.velocity);
         isHittingOtherAtoms(this);
-		
+		this.updatedThisFrame = 1;
     }
 }
+
+function createMolecule(atomOne, atomTwo){
+	atomOne.isInMolecule = 1;
+	atomTwo.isInMolecule = 1;
+	atomOne.structureMass = atomOne.mass + atomTwo.mass;
+	atomTwo.structureMass = atomOne.mass + atomTwo.mass;
+	structVelX = Math.random()* 5.0;
+	structVelY = Math.random() * 5.0
+	atomOne.velocity[0] = structVelX;
+	atomTwo.velocity[0] = structVelX;
+	atomOne.velocity[1] = structVelY;
+	atomTwo.velocity[1] = structVelY;
+	atomOne.bondedTo.push(atomTwo.guid);
+	atomTwo.bondedTo.push(atomOne.guid);
+}
+
 
 function isHittingOtherAtoms(atom1)
 {
@@ -76,19 +97,40 @@ function isHittingOtherAtoms(atom1)
     return false;
 }
 
-function bounceOffOfEdges(radius, position, velocity)
+function bounceOffOfEdges(atom)
 {
-    var top = 0 + radius;
-    var bottom = WORLD_HEIGHT - radius;
-    var left = 0 + radius;
-    var right = WORLD_WIDTH - radius;
+    var top = 0 + atom.radius;
+    var bottom = WORLD_HEIGHT - atom.radius;
+    var left = 0 + atom.radius;
+    var right = WORLD_WIDTH - atom.radius;
 	
-	if(((position[1] < top) && (velocity[1] < 0)) || ((position[1] > bottom) && (velocity[1] > 0)))
-		velocity[1] *= -1;
-	if(((position[0] < left) && (velocity[0] < 0)) || ((position[0] > right) && (velocity[0] > 0)))
-		velocity[0] *= -1;
-
-    return velocity;
+	if(((atom.position[1] < top) && (atom.velocity[1] < 0)) || ((atom.position[1] > bottom) && (atom.velocity[1] > 0))){
+		atom.velocity[1] *= -1;
+		for (var i=0; i < atom.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atom.bondedTo[i] && (organisms[j].updatedThisFrame == 0)){
+					//alert (organisms[j].updatedThisFrame);
+					//alert (j);
+					//organisms[j].position[1] += (organisms[j].velocity[1]);
+					organisms[j].velocity[1] *= -1;
+					
+				}
+			}
+		}
+	}
+	if(((atom.position[0] < left) && (atom.velocity[0] < 0)) || ((atom.position[0] > right) && (atom.velocity[0] > 0))){
+		atom.velocity[0] *= -1;
+		for (var i=0; i < atom.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atom.bondedTo[i] && (organisms[j].updatedThisFrame == 0)){
+					//alert (organisms[j].updatedThisFrame);
+					//alert (j);
+					//organisms[j].position[0] += (organisms[j].velocity[0]);
+					organisms[j].velocity[0] *= -1;
+				}
+			}
+		}
+	}
 }
 
 function twoAtomCollisionCheck(atom1, atom2)
@@ -97,8 +139,12 @@ function twoAtomCollisionCheck(atom1, atom2)
     var diffY = (atom2.position[1] - atom1.position[1]);
     var radii = (atom1.radius + atom2.radius);
     var distanceSQ = (diffX * diffX) + (diffY * diffY);
+	
+	if (distanceSQ < (radii * radii) && !(atom1.isInMolecule == 1 || atom2.isInMolecule == 1) && (atom1.type == 'A' && atom2.type == 'B' || atom1.type == 'B' && atom2.type == 'A' || atom1.type == 'C' && atom2.type == 'D' || atom1.type == 'D' && atom2.type == 'C')){
+		createMolecule(atom1, atom2);
+	}
 
-    if(distanceSQ < (radii * radii)){
+    if(distanceSQ < (radii * radii) && !(atom1.isInMolecule == 1 || atom2.isInMolecule == 1)){
 		if (!(($.inArray(atom2.guid, atom1.hitLastTime)) > 0) && !(($.inArray(atom1.guid, atom2.hitLastTime)) > 0)){
 		
 			if (!(($.inArray(atom2.guid, atom1.hitsAccountedFor)) > 0) && !(($.inArray(atom1.guid, atom2.hitsAccountedFor)) > 0)){
