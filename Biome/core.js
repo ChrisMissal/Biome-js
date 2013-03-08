@@ -1,5 +1,5 @@
-var WORLD_WIDTH = 700;
-var WORLD_HEIGHT = 700;
+var WORLD_WIDTH = 1700;
+var WORLD_HEIGHT = 1700;
 
 var CLEAR_COLOR = "#5292BF";
 
@@ -13,7 +13,7 @@ var organisms = [];
 $(document).ready( function(){
     sizeCanvas();
     createContext();
-    generateSystem(200);
+    generateSystem(350);
 
     paused = false;
 });
