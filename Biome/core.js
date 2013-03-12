@@ -1,5 +1,5 @@
-var WORLD_WIDTH = 1700;
-var WORLD_HEIGHT = 1700;
+var WORLD_WIDTH = 1300;
+var WORLD_HEIGHT = 1300;
 
 var CLEAR_COLOR = "#5292BF";
 
@@ -13,7 +13,7 @@ var organisms = [];
 $(document).ready( function(){
     sizeCanvas();
     createContext();
-    generateSystem(350);
+    generateSystem(300);
 
     paused = false;
 });
@@ -55,6 +55,9 @@ function updateSystem()
 	}
     for(var i=0; i <organisms.length; i++){
         organisms[i].update();
+	}
+    for(var i=0; i <organisms.length; i++){
+        organisms[i].move();
 	}
 }
 
