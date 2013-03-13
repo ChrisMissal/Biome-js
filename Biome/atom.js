@@ -16,9 +16,6 @@ function randomAtom(maxHeight, maxWidth)
 	var isInPlant = 0;
 	var isInAnimal = 0;
 	
-	//var positionX = Math.floor(.5 * maxWidth);
-	//var positionY = Math.floor(.5 * maxHeight);
-	
 	var positionX = Math.random() * maxWidth;
 	var positionY = Math.random() * maxHeight;
 
@@ -64,8 +61,6 @@ function atom(position, velocity, type, angle)
 		this.positionLastFrame[1] = this.position[1];
         isHittingOtherAtoms(this);
 		bounceOffOfEdges(this);
-        //this.position[0] += this.velocity[0];
-        //this.position[1] += this.velocity[1];
 		this.updatedThisFrame = 1;
     }
 	this.move = function() {
@@ -74,21 +69,25 @@ function atom(position, velocity, type, angle)
 	}
 }
 
-function createMolecule(atomOne, atomTwo){
-	atomOne.isInMolecule = 1;
-	atomTwo.isInMolecule = 1;
-	atomOne.structureMass = atomOne.mass + atomTwo.mass;
-	atomTwo.structureMass = atomOne.mass + atomTwo.mass;
-	structVelX = Math.random()* 5.0;
+function createMolecule(atomsArray){
+	structVelX = Math.random() * 5.0;
 	structVelY = Math.random() * 5.0
-	atomOne.velocity[0] = structVelX;
-	atomTwo.velocity[0] = structVelX;
-	atomOne.velocity[1] = structVelY;
-	atomTwo.velocity[1] = structVelY;
-	atomOne.bondedTo.push(atomTwo.guid);
-	atomTwo.bondedTo.push(atomOne.guid);
+	totalMass = 0.0
+	for (i=0; i<atomsArray.length;i++){
+		totalMass = totalMass + atomsArray[i].mass
+	}
+	for (i=0;i<atomsArray.length;i++){
+		atomsArray[i].isInMolecule = 1;
+		atomsArray[i].structureMass = totalMass;
+		atomsArray[i].velocity[0] = structVelX;
+		atomsArray[i].velocity[1] = structVelY;
+		for (j=0;j<atomsArray.length;j++){
+			if (!(j == i)){
+				atomsArray[i].bondedTo.push(atomsArray[j].guid)
+			}
+		}
+	}
 }
-
 
 function isHittingOtherAtoms(atom1)
 {
@@ -140,8 +139,12 @@ function twoAtomCollisionCheck(atom1, atom2)
     var distanceSQ = (diffX * diffX) + (diffY * diffY);
 	
 	if (distanceSQ < (radii * radii) && !(atom1.isInMolecule == 1 || atom2.isInMolecule == 1) && (atom1.type == 'A' && atom2.type == 'B' || atom1.type == 'B' && atom2.type == 'A' || atom1.type == 'C' && atom2.type == 'D' || atom1.type == 'D' && atom2.type == 'C')){
-		createMolecule(atom1, atom2);
+		atomsArray = new Array();
+		atomsArray.push(atom1);
+		atomsArray.push(atom2);
+		createMolecule(atomsArray);
 	}
+	
 	areBonded = 0
 	for (var i=0; i < atom1.bondedTo.length; i++){
 		if (atom2.guid == atom1.bondedTo[i]){
