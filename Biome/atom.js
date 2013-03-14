@@ -12,9 +12,6 @@ function randomAtom(maxHeight, maxWidth)
 	var angle = Math.random()*360;
 	var velX = Math.cos(angle) * totalSpeed;
 	var velY = Math.sin(angle) * totalSpeed;
-	var isInMolecule = 0;
-	var isInPlant = 0;
-	var isInAnimal = 0;
 	
 	var positionX = Math.random() * maxWidth;
 	var positionY = Math.random() * maxHeight;
@@ -48,6 +45,7 @@ function atom(position, velocity, type, angle)
     this.velocity = velocity;
     this.color = ATOM_TYPE[type].color;
 	this.bondedTo = new Array();
+	this.isInMolecule = 0;
     this.draw = function() {
         context.beginPath();
         context.fillStyle = this.color;
@@ -114,7 +112,7 @@ function bounceOffOfEdges(atom)
 		for (var i=0; i < atom.bondedTo.length; i++){
 			for (var j=0; j < organisms.length; j++){
 				if (organisms[j].guid == atom.bondedTo[i]){
-					organisms[j].velocity[1] *= -1;
+					organisms[j].velocity[1] = atom.velocity[1];
 				}
 			}
 		}
@@ -124,7 +122,7 @@ function bounceOffOfEdges(atom)
 		for (var i=0; i < atom.bondedTo.length; i++){
 			for (var j=0; j < organisms.length; j++){
 				if (organisms[j].guid == atom.bondedTo[i]){
-					organisms[j].velocity[0] *= -1;
+					organisms[j].velocity[0] = atom.velocity[0];
 				}
 			}
 		}
@@ -142,6 +140,27 @@ function twoAtomCollisionCheck(atom1, atom2)
 		atomsArray = new Array();
 		atomsArray.push(atom1);
 		atomsArray.push(atom2);
+		createMolecule(atomsArray);
+	}
+	atomsArray = new Array();
+	if (distanceSQ < (radii * radii) && ((atom1.type == 'A' && atom2.type == 'B' && atom1.isInMolecule == 1 && atom2.isInMolecule == 0 && atom1.bondedTo.length == 1) || (atom1.type == 'B' && atom2.type == 'A' && atom2.isInMolecule == 1 && atom1.isInMolecule == 0 && atom2.bondedTo.length == 1))){
+		atomsArray.push(atom1);
+		atomsArray.push(atom2);
+		//alert ("wabbajack");
+		for (var i=0; i < atom1.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atom1.bondedTo[i] && !(organisms[j] == atom2)){
+					atomsArray.push(organisms[j]);
+				}
+			}
+		}
+		for (var i=0; i < atom2.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atom2.bondedTo[i] && !(organisms[j] == atom1)){
+					atomsArray.push(organisms[j]);
+				}
+			}
+		}
 		createMolecule(atomsArray);
 	}
 	
