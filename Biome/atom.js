@@ -46,6 +46,7 @@ function atom(position, velocity, type, angle)
     this.color = ATOM_TYPE[type].color;
 	this.bondedTo = new Array();
 	this.isInMolecule = 0;
+	this.bindsPlant = 0;
 	if (this.type == 'A' || this.type == 'B'){
 		this.moleculeType = "typeOne";
 	}
@@ -236,9 +237,10 @@ function twoAtomCollisionCheck(atom1, atom2)
 				}
 			}
 		}
-		if (alreadyBonded == 0){
-			//alert ("hits all around");
+		if (alreadyBonded == 0 && !(atom1.bindsPlant == 1 || atom2.bindsPlant == 1)){
 			createPlant(atomsArray);
+			atom1.bindsPlant = 1;
+			atom2.bindsPlant = 1;
 		}
 	}
 	
