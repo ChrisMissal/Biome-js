@@ -8,7 +8,7 @@ var ATOM_TYPE = {
 
 function randomAtom(maxHeight, maxWidth)
 {
-	var totalSpeed = 5.0 * Math.random();
+	var totalSpeed = 7.0 * Math.random();
 	var angle = Math.random()*360;
 	var velX = Math.cos(angle) * totalSpeed;
 	var velY = Math.sin(angle) * totalSpeed;
@@ -46,6 +46,13 @@ function atom(position, velocity, type, angle)
     this.color = ATOM_TYPE[type].color;
 	this.bondedTo = new Array();
 	this.isInMolecule = 0;
+	if (this.type == 'A' || this.type == 'B'){
+		this.moleculeType = "typeOne";
+	}
+	if (this.type == 'C' || this.type == 'D'){
+		this.moleculeType = "typeTwo";
+	}
+	this.moleculeIsComplete = 0;
     this.draw = function() {
         context.beginPath();
         context.fillStyle = this.color;
@@ -68,8 +75,10 @@ function atom(position, velocity, type, angle)
 }
 
 function createMolecule(atomsArray){
-	structVelX = Math.random() * 5.0;
-	structVelY = Math.random() * 5.0
+	var totalSpeed = 7.0 * Math.random();
+	var angle = Math.random()*360;
+	var structVelX = Math.cos(angle) * totalSpeed;
+	var structVelY = Math.sin(angle) * totalSpeed;
 	totalMass = 0.0
 	for (i=0; i<atomsArray.length;i++){
 		totalMass = totalMass + atomsArray[i].mass
@@ -84,6 +93,16 @@ function createMolecule(atomsArray){
 				atomsArray[i].bondedTo.push(atomsArray[j].guid)
 			}
 		}
+	}
+}
+
+function createPlant (atomsArray){
+	for (i = 0; i<atomsArray.length; i++){
+		//atomsArray[i].isInMolecule = 0;
+		//alert ("ya got me");
+		atomsArray[i].isInPlant = 1;
+		atomsArray[i].velocity[0] = 0;
+		atomsArray[i].velocity[1] = 0;
 	}
 }
 
@@ -129,6 +148,26 @@ function bounceOffOfEdges(atom)
 	}
 }
 
+function bounceOffOfObject(atom){
+	atom.velocity[0] *= -1;
+	for (var i=0; i < atom.bondedTo.length; i++){
+		for (var j=0; j < organisms.length; j++){
+			if (organisms[j].guid == atom.bondedTo[i]){
+				organisms[j].velocity[0] = atom.velocity[0];
+			}
+		}
+	}
+	
+	atom.velocity[1] *= -1;
+	for (var i=0; i < atom.bondedTo.length; i++){
+		for (var j=0; j < organisms.length; j++){
+			if (organisms[j].guid == atom.bondedTo[i]){
+				organisms[j].velocity[1] = atom.velocity[1];
+			}
+		}
+	}	
+}
+
 function twoAtomCollisionCheck(atom1, atom2)
 {
     var diffX = (atom2.position[0] - atom1.position[0]);
@@ -141,12 +180,48 @@ function twoAtomCollisionCheck(atom1, atom2)
 		atomsArray.push(atom1);
 		atomsArray.push(atom2);
 		createMolecule(atomsArray);
+		if (atom1.type == 'C' && atom2.type == 'D' || atom1.type == 'D' && atom2.type == 'C'){
+			atom1.moleculeIsComplete = 1;
+			atom2.moleculeIsComplete = 1;
+		}
 	}
-	atomsArray = new Array();
-	if (distanceSQ < (radii * radii) && ((atom1.type == 'A' && atom2.type == 'B' && atom1.isInMolecule == 1 && atom2.isInMolecule == 0 && atom1.bondedTo.length == 1) || (atom1.type == 'B' && atom2.type == 'A' && atom2.isInMolecule == 1 && atom1.isInMolecule == 0 && atom2.bondedTo.length == 1))){
+	else if (distanceSQ < (radii * radii) && ((atom1.type == 'A' && atom2.type == 'B' && atom1.isInMolecule == 1 && atom2.isInMolecule == 0 && atom1.bondedTo.length == 1) || (atom1.type == 'B' && atom2.type == 'A' && atom2.isInMolecule == 1 && atom1.isInMolecule == 0 && atom2.bondedTo.length == 1))){
+		atomsArray = new Array();
 		atomsArray.push(atom1);
 		atomsArray.push(atom2);
-		//alert ("wabbajack");
+		atom1.moleculeIsComplete = 1;
+		atom2.moleculeIsComplete = 1;
+		for (var i=0; i < atom1.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atom1.bondedTo[i] && !(organisms[j] == atom2)){
+					atomsArray.push(organisms[j]);
+					organisms[j].moleculeIsComplete = 1;
+				}
+			}
+		}
+		for (var i=0; i < atom2.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atom2.bondedTo[i] && !(organisms[j] == atom1)){
+					atomsArray.push(organisms[j]);
+					organisms[j].moleculeIsComplete = 1;
+				}
+			}
+		}
+		createMolecule(atomsArray);
+	}
+	
+	else if (distanceSQ < (radii * radii) && ((atom1.type == 'B' && atom2.type == 'B' && atom1.moleculeIsComplete == 1 && atom2.moleculeIsComplete == 1) || (atom1.type == 'C' && atom2.type == 'D' && atom1.moleculeIsComplete == 1 && atom2.moleculeIsComplete == 1))){
+		atomsArray = new Array();
+		alreadyBonded = 0;
+		for (var i=0; i < atom1.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atom1.bondedTo[i] && (organisms[j] == atom2)){
+					alreadyBonded = 1
+				}
+			}
+		}
+		atomsArray.push(atom1);
+		atomsArray.push(atom2);
 		for (var i=0; i < atom1.bondedTo.length; i++){
 			for (var j=0; j < organisms.length; j++){
 				if (organisms[j].guid == atom1.bondedTo[i] && !(organisms[j] == atom2)){
@@ -161,8 +236,12 @@ function twoAtomCollisionCheck(atom1, atom2)
 				}
 			}
 		}
-		createMolecule(atomsArray);
+		if (alreadyBonded == 0){
+			//alert ("hits all around");
+			createPlant(atomsArray);
+		}
 	}
+	
 	
 	areBonded = 0
 	for (var i=0; i < atom1.bondedTo.length; i++){
@@ -191,52 +270,61 @@ function twoAtomCollisionCheck(atom1, atom2)
 }
 
 function twoDCollision(atomOne, atomTwo){
-	var atomOneTotalSpeedPre = Math.sqrt(atomOne.velocity[0] * atomOne.velocity[0] + atomOne.velocity[1] * atomOne.velocity[1]);
-	var atomTwoTotalSpeedPre = Math.sqrt(atomTwo.velocity[0] * atomTwo.velocity[0] + atomTwo.velocity[1] * atomTwo.velocity[1]);
+	if (atomOne.isInPlant == 1){
+		bounceOffOfObject(atomTwo);
+	}
+	else if (atomTwo.isInPlant == 1){
+		bounceOffOfObject(atomOne);
+	}
 
-	var angle = Math.atan2((atomOne.position[1] - atomTwo.position[1]), (atomOne.position[0] - atomTwo.position[0]));
-	angle = angle * 57.2958; 
-	
-	var angularDiffOne = atomOne.angleDeg - angle;
-	var angularDiffTwo = atomTwo.angleDeg - angle;
-	
-	var atomOneTotalSpeedPost = (atomOneTotalSpeedPre*(atomOne.structureMass - atomTwo.structureMass))/(atomOne.structureMass+atomTwo.structureMass)+2*atomTwo.structureMass*atomTwoTotalSpeedPre/(atomOne.structureMass + atomTwo.structureMass);
-	var atomTwoTotalSpeedPost = (atomTwoTotalSpeedPre*(atomTwo.structureMass - atomOne.structureMass))/(atomOne.structureMass+atomTwo.structureMass)+2*atomOne.structureMass*atomOneTotalSpeedPre/(atomOne.structureMass + atomTwo.structureMass);
+	else{
+		var atomOneTotalSpeedPre = Math.sqrt(atomOne.velocity[0] * atomOne.velocity[0] + atomOne.velocity[1] * atomOne.velocity[1]);
+		var atomTwoTotalSpeedPre = Math.sqrt(atomTwo.velocity[0] * atomTwo.velocity[0] + atomTwo.velocity[1] * atomTwo.velocity[1]);
 
-	var velOneX = atomOneTotalSpeedPost * Math.cos(angularDiffOne);
-	var velOneY = atomOneTotalSpeedPost * Math.sin(angularDiffOne);
-	var velTwoX = atomTwoTotalSpeedPost * Math.cos(angularDiffTwo);
-	var velTwoY = atomTwoTotalSpeedPost * Math.sin(angularDiffTwo);
-	
-	atomTwo.velocity[0] = velTwoX;
-	for (var i=0; i < atomTwo.bondedTo.length; i++){
-		for (var j=0; j < organisms.length; j++){
-			if (organisms[j].guid == atomTwo.bondedTo[i]){
-				organisms[j].velocity[0] = velTwoX;
+		var angle = Math.atan2((atomOne.position[1] - atomTwo.position[1]), (atomOne.position[0] - atomTwo.position[0]));
+		angle = angle * 57.2958; 
+		
+		var angularDiffOne = atomOne.angleDeg - angle;
+		var angularDiffTwo = atomTwo.angleDeg - angle;
+		
+		var atomOneTotalSpeedPost = (atomOneTotalSpeedPre*(atomOne.structureMass - atomTwo.structureMass))/(atomOne.structureMass+atomTwo.structureMass)+2*atomTwo.structureMass*atomTwoTotalSpeedPre/(atomOne.structureMass + atomTwo.structureMass);
+		var atomTwoTotalSpeedPost = (atomTwoTotalSpeedPre*(atomTwo.structureMass - atomOne.structureMass))/(atomOne.structureMass+atomTwo.structureMass)+2*atomOne.structureMass*atomOneTotalSpeedPre/(atomOne.structureMass + atomTwo.structureMass);
+
+		var velOneX = atomOneTotalSpeedPost * Math.cos(angularDiffOne);
+		var velOneY = atomOneTotalSpeedPost * Math.sin(angularDiffOne);
+		var velTwoX = atomTwoTotalSpeedPost * Math.cos(angularDiffTwo);
+		var velTwoY = atomTwoTotalSpeedPost * Math.sin(angularDiffTwo);
+		
+		atomTwo.velocity[0] = velTwoX;
+		for (var i=0; i < atomTwo.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atomTwo.bondedTo[i]){
+					organisms[j].velocity[0] = velTwoX;
+				}
 			}
 		}
-	}
-	atomOne.velocity[0] = velOneX;
-	for (var i=0; i < atomOne.bondedTo.length; i++){
-		for (var j=0; j < organisms.length; j++){
-			if (organisms[j].guid == atomOne.bondedTo[i]){
-				organisms[j].velocity[0] = velOneX;
+		atomOne.velocity[0] = velOneX;
+		for (var i=0; i < atomOne.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atomOne.bondedTo[i]){
+					organisms[j].velocity[0] = velOneX;
+				}
 			}
 		}
-	}
-	atomTwo.velocity[1] = velTwoY;
-	for (var i=0; i < atomTwo.bondedTo.length; i++){
-		for (var j=0; j < organisms.length; j++){
-			if (organisms[j].guid == atomTwo.bondedTo[i]){
-				organisms[j].velocity[1] = velTwoY;
+		atomTwo.velocity[1] = velTwoY;
+		for (var i=0; i < atomTwo.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atomTwo.bondedTo[i]){
+					organisms[j].velocity[1] = velTwoY;
+				}
 			}
 		}
-	}
-	atomOne.velocity[1] = velOneY;
-	for (var i=0; i < atomOne.bondedTo.length; i++){
-		for (var j=0; j < organisms.length; j++){
-			if (organisms[j].guid == atomOne.bondedTo[i]){
-				organisms[j].velocity[1] = velOneY;
+		atomOne.velocity[1] = velOneY;
+		for (var i=0; i < atomOne.bondedTo.length; i++){
+			for (var j=0; j < organisms.length; j++){
+				if (organisms[j].guid == atomOne.bondedTo[i]){
+					organisms[j].velocity[1] = velOneY;
+				}
 			}
 		}
 	}
