@@ -75,14 +75,18 @@ function atom(position, velocity, type, angle)
 }
 
 function createMolecule(atomsArray){
-	var totalSpeed = 12.0 * Math.random();
+	//var totalSpeed = 12.0 * Math.random();
 	var angle = Math.random()*360;
-	var structVelX = Math.cos(angle) * totalSpeed;
-	var structVelY = Math.sin(angle) * totalSpeed;
 	totalMass = 0.0
 	for (i=0; i<atomsArray.length;i++){
 		totalMass = totalMass + atomsArray[i].mass
 	}
+	var totalSpeed = 0.0
+	for (i=0;i<atomsArray.length;i++){
+		totalSpeed = totalSpeed + ((Math.sqrt(atomsArray[i].velocity[0] * atomsArray[i].velocity[0] + atomsArray[i].velocity[1] * atomsArray[i].velocity[1])) * (atomsArray[i].mass/totalMass));
+	}
+	var structVelX = Math.cos(angle) * totalSpeed;
+	var structVelY = Math.sin(angle) * totalSpeed;
 	for (i=0;i<atomsArray.length;i++){
 		atomsArray[i].isInMolecule = 1;
 		atomsArray[i].structureMass = totalMass;
