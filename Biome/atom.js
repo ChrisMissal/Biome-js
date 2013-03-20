@@ -33,8 +33,6 @@ function randomAtom(maxHeight, maxWidth)
 function atom(position, velocity, type, angle)
 {
 	this.guid = hackyGuid() + "-" + hackyGuid() + "-" + hackyGuid();
-	this.hitsAccountedFor = new Array();
-	this.hitLastTime = new Array();
     this.type = type;
 	this.angleDeg = angle;
     this.position = position;
@@ -44,6 +42,7 @@ function atom(position, velocity, type, angle)
 	this.structureMass = this.mass;
     this.velocity = velocity;
     this.color = ATOM_TYPE[type].color;
+	this.overlapArray = new Array();
 	this.bondedTo = new Array();
 	this.isInMolecule = 0;
 	this.bindsPlant = 0;
@@ -76,7 +75,7 @@ function atom(position, velocity, type, angle)
 }
 
 function createMolecule(atomsArray){
-	var totalSpeed = 7.0 * Math.random();
+	var totalSpeed = 12.0 * Math.random();
 	var angle = Math.random()*360;
 	var structVelX = Math.cos(angle) * totalSpeed;
 	var structVelY = Math.sin(angle) * totalSpeed;
@@ -251,23 +250,18 @@ function twoAtomCollisionCheck(atom1, atom2)
 			areBonded = 1;
 		}
 	}
-    if(distanceSQ < (radii * radii) && areBonded == 0){
-		if (!(($.inArray(atom2.guid, atom1.hitLastTime)) > 0) && !(($.inArray(atom1.guid, atom2.hitLastTime)) > 0)){
-		
-			if (!(($.inArray(atom2.guid, atom1.hitsAccountedFor)) > 0) && !(($.inArray(atom1.guid, atom2.hitsAccountedFor)) > 0)){
-				twoDCollision(atom1, atom2);
-				atom2.hitLastTime.push(atom1.guid);
-				atom1.hitsAccountedFor.push(atom2.guid);
-				atom2.hitsAccountedFor.push(atom1.guid);
-			}
-		}
-		else{
-			for (var i=atom1.hitLastTime.length; i>=0; i--) {
-				if (atom1.hitLastTime[i] == atom2.guid) {
-					atom1.hitLastTime.splice(i);
-				}
-			}
-		}
+    if(distanceSQ < (radii * radii) && areBonded == 0 && atom1.overlapArray.indexOf(atom2.guid) == -1 && atom2.overlapArray.indexOf(atom1.guid) == -1){
+		twoDCollision(atom1, atom2);
+		atom1.overlapArray.push(atom2.guid);
+		atom2.overlapArray.push(atom1.guid);
+	}
+	if(distanceSQ > (radii * radii) && atom1.overlapArray.indexOf(atom2.guid) > -1){
+		guidPosition = atom1.overlapArray.indexOf(atom2.guid);
+		atom1.overlapArray.splice(guidPosition);
+	}
+	if(distanceSQ > (radii * radii) && atom2.overlapArray.indexOf(atom1.guid) > -1){
+		guidPosition = atom2.overlapArray.indexOf(atom1.guid);
+		atom2.overlapArray.splice(guidPosition);
 	}
 }
 
