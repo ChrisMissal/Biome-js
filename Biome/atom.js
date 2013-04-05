@@ -1,3 +1,5 @@
+var systemSpeed = 7.0
+
 var ATOM_TYPE = {
     A : { radius: 6.0, color:'red' },
     B : { radius: 5.0, color:'blue' },
@@ -8,7 +10,7 @@ var ATOM_TYPE = {
 
 function randomAtom(maxHeight, maxWidth)
 {
-	var totalSpeed = 7.0 * Math.random();
+	var totalSpeed = systemSpeed * Math.random();
 	var angle = Math.random()*360;
 	var velX = Math.cos(angle) * totalSpeed;
 	var velY = Math.sin(angle) * totalSpeed;
@@ -46,6 +48,7 @@ function atom(position, velocity, type, angle)
 	this.bondedTo = new Array();
 	this.isInMolecule = 0;
 	this.bindsPlant = 0;
+	this.isInPlant = 0;
 	if (this.type == 'A' || this.type == 'B'){
 		this.moleculeType = "typeOne";
 	}
@@ -98,6 +101,21 @@ function createMolecule(atomsArray){
 			}
 		}
 	}
+}
+
+function breakBond (atomOne, atomTwo) {
+	atomOne.isInMolecule = 0;
+	atomTwo.isInMolecule = 0;
+	atomOneSpeed = Math.random() * systemSpeed;
+	atomTwoSpeed = Math.random() * systemSpeed;
+	atomOneAngle = Math.random() * 360;
+	atomTwoAngle = Math.random() * 360;
+	atomOne.velocity[0] = Math.cos(atomOneAngle) * atomOneSpeed;
+	atomOne.velocity[1] = Math.sin(atomOneAngle) * atomOneSpeed;
+	atomTwo.velocity[0] = Math.cos(atomTwoAngle) * atomTwoSpeed;
+	atomTwo.velocity[1] = Math.sin(atomTwoAngle) * atomTwoSpeed;
+	atomOne.bondedTo.splice(atomTwo.guid);
+	atomTwo.bondedTo.splice(atomOne.guid);
 }
 
 function createPlant (atomsArray){
@@ -266,6 +284,11 @@ function twoAtomCollisionCheck(atom1, atom2)
 	if(distanceSQ > (radii * radii) && atom2.overlapArray.indexOf(atom1.guid) > -1){
 		guidPosition = atom2.overlapArray.indexOf(atom1.guid);
 		atom2.overlapArray.splice(guidPosition);
+	}
+	
+	if(areBonded == 1 && (Math.random() * 1000.0 < 1)){//&& atom1.isInPlant == 0 && atom2.isInPlant == 0){
+		//alert("hit");
+		breakBond(atom1, atom2);
 	}
 }
 
