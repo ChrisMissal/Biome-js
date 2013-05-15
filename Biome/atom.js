@@ -32,7 +32,7 @@ function randomAtom(maxHeight, maxWidth)
 
 function atom(position, velocity, type, angle)
 {
-	this.guid = hackyGuid() + "-" + hackyGuid() + "-" + hackyGuid();
+	this.guid = guid();
     this.type = type;
 	this.angleDeg = angle;
     this.position = position;
@@ -330,8 +330,9 @@ function twoDCollision(atomOne, atomTwo){
 	}
 }
 
-
-function hackyGuid() { //apparently JS can't generate real guids for some reason.  This is a random number generator
-	return (Math.floor((1 + Math.random()) * 10000000).toString());
+function S4() {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
 }
-
+function guid() {
+   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+}
